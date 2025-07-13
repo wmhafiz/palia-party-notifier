@@ -13,8 +13,12 @@
   ];
   const DEFAULT_REFRESH = 30;
   const STORAGE_KEY = "paliaNotifierSettings";
+  const DISCORD_WEBHOOK_URL =
+    "https://discord.com/api/webhooks/1393939260993704018/hiRehdCIc-daAuZZH0ATgq62WmlSkoKLiLnzsBpTCU1gzERCC_TDPDe_G5hAzqg0TjBK";
+  const NOTIFIED_IDS_KEY = "paliaNotifiedIds";
 
   let settings = {};
+  let notifiedIds = new Set();
 
   function log(...args) {
     console.log("[PaliaNotifier]", ...args);
@@ -22,7 +26,10 @@
 
   async function loadSettings() {
     try {
-      const result = await chrome.storage.local.get([STORAGE_KEY]);
+      const result = await chrome.storage.local.get([
+        STORAGE_KEY,
+        NOTIFIED_IDS_KEY,
+      ]);
       if (result[STORAGE_KEY]) {
         settings = result[STORAGE_KEY];
       } else {
@@ -31,6 +38,11 @@
           notify: true,
           refresh: DEFAULT_REFRESH,
         };
+      }
+
+      // Load notified IDs
+      if (result[NOTIFIED_IDS_KEY]) {
+        notifiedIds = new Set(result[NOTIFIED_IDS_KEY]);
       }
     } catch (e) {
       console.error("Error loading settings:", e);
@@ -50,6 +62,16 @@
     }
   }
 
+  async function saveNotifiedIds() {
+    try {
+      await chrome.storage.local.set({
+        [NOTIFIED_IDS_KEY]: Array.from(notifiedIds),
+      });
+    } catch (e) {
+      console.error("Error saving notified IDs:", e);
+    }
+  }
+
   function normalize(text) {
     return text
       .toLowerCase()
@@ -58,27 +80,196 @@
       .trim();
   }
 
+  function extractIdFromHref(href) {
+    // Extract ID from href="/id" format
+    const match = href.match(/^\/([^\/]+)$/);
+    return match ? match[1] : null;
+  }
+
+  function getPartyDetails(element) {
+    try {
+      // Find the parent link element
+      const linkElement = element.closest("a[href]");
+      if (!linkElement) return null;
+
+      const href = linkElement.getAttribute("href");
+      const id = extractIdFromHref(href);
+      if (!id) return null;
+
+      // Get the title from the element
+      const title = element.textContent.trim();
+
+      // Try to get additional details from the link
+      const titleAttr = linkElement.getAttribute("title");
+      const fullTitle = titleAttr || title;
+
+      // Try to find the time information by looking for clock SVG + adjacent text
+      let timeInfo = "Time not specified";
+
+      // Look for clock SVG (path contains clock-specific path data)
+      const clockSvgs = linkElement.querySelectorAll("svg");
+      for (const svg of clockSvgs) {
+        const path = svg.querySelector("path");
+        if (
+          path &&
+          path.getAttribute("d") &&
+          path.getAttribute("d").includes("12 2.25c-5.385")
+        ) {
+          // This is likely a clock icon, find the adjacent span
+          const parentDiv = svg.closest("div");
+          if (parentDiv) {
+            const timeSpan = parentDiv.querySelector("span.text-white");
+            if (timeSpan) {
+              const timeText = timeSpan.textContent.trim();
+              // Check if it matches time patterns
+              if (
+                timeText.match(
+                  /(?:< )?\d+[mhd]\s+ago|in\s+\d+[mhd]|\d{1,2}:\d{2}\s+(?:AM|PM)|\d{1,2}\s+\w+,?\s+\d{1,2}:\d{2}\s+(?:AM|PM)/i
+                )
+              ) {
+                timeInfo = timeText;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      // Fallback: look for any time-like patterns if clock method didn't work
+      if (timeInfo === "Time not specified") {
+        const allElements = linkElement.querySelectorAll("span, div");
+        for (const elem of allElements) {
+          const text = elem.textContent.trim();
+
+          // Match various time formats:
+          // - "< 1m ago", "1m ago", "11m ago", "in 7m"
+          // - "13 Jul, 10:30 PM", "14 Jul, 1:00 AM"
+          // - "10:30 PM"
+          if (
+            text.match(
+              /^(?:< )?\d+[mhd]\s+ago$|^in\s+\d+[mhd]$|^\d{1,2}:\d{2}\s+(?:AM|PM)$|^\d{1,2}\s+\w+,?\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i
+            )
+          ) {
+            timeInfo = text;
+            break;
+          }
+        }
+      }
+
+      return {
+        id,
+        title: fullTitle,
+        time: timeInfo,
+        url: window.location.origin + href,
+      };
+    } catch (error) {
+      log("Error extracting party details:", error);
+      return null;
+    }
+  }
+
+  async function sendDiscordNotification(matches) {
+    if (!settings.notify || matches.length === 0) return;
+
+    try {
+      const paliaIconUrl = "https://i.ibb.co/Y451dW1P/palia-icon-128.png"; // Replace with actual hosted Palia icon
+      const currentTime = new Date().toISOString();
+
+      // Send individual embed for each party
+      for (const match of matches) {
+        const embed = {
+          title: "🎉 Palia Party Match Found!",
+          description: `**${match.title}**\n\n⏰ **Time:** ${match.time}\n🆔 **Party ID:** \`${match.id}\``,
+          color: 0x9f7aea, // Purple color matching Palia theme
+          fields: [
+            {
+              name: "🔗 Join Party",
+              value: `[Click here to join the party](${match.url})`,
+              inline: false,
+            },
+          ],
+          thumbnail: {
+            url: paliaIconUrl,
+          },
+          timestamp: currentTime,
+          footer: {
+            text: "Palia Party Notifier • New match found",
+            icon_url: paliaIconUrl,
+          },
+        };
+
+        const payload = {
+          username: "Palia Party Notifier",
+          avatar_url: paliaIconUrl,
+          embeds: [embed],
+        };
+
+        const response = await fetch(DISCORD_WEBHOOK_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.ok) {
+          log(`Discord notification sent successfully for party: ${match.id}`);
+
+          // Mark this ID as notified
+          notifiedIds.add(match.id);
+        } else {
+          log(
+            `Failed to send Discord notification for party ${match.id}:`,
+            response.status,
+            response.statusText
+          );
+        }
+
+        // Add a small delay between messages to avoid rate limiting
+        if (matches.length > 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+
+      // Save all notified IDs after processing all matches
+      await saveNotifiedIds();
+    } catch (error) {
+      log("Error sending Discord notification:", error);
+    }
+  }
+
   function notifyUser(matches) {
     if (!settings.notify || matches.length === 0) return;
 
-    // Create summary message
-    let message;
-    if (matches.length === 1) {
-      message = `Found: ${matches[0]}`;
-    } else {
-      message = `Found ${matches.length} matches: ${matches
-        .slice(0, 2)
-        .join(", ")}${matches.length > 2 ? "..." : ""}`;
+    // Filter out already notified matches
+    const newMatches = matches.filter((match) => !notifiedIds.has(match.id));
+
+    if (newMatches.length === 0) {
+      log("All matches already notified, skipping");
+      return;
     }
 
-    // Try Chrome extension notification first
+    // Send Discord notification
+    sendDiscordNotification(newMatches);
+
+    // Create summary message for fallback
+    let message;
+    if (newMatches.length === 1) {
+      message = `Found: ${newMatches[0].title}`;
+    } else {
+      message = `Found ${newMatches.length} matches: ${newMatches
+        .slice(0, 2)
+        .map((m) => m.title)
+        .join(", ")}${newMatches.length > 2 ? "..." : ""}`;
+    }
+
+    // Try Chrome extension notification as fallback
     if (chrome && chrome.runtime) {
       chrome.runtime.sendMessage({
         action: "showNotification",
         title: "🎉 Palia Party Match!",
         message: message,
       });
-      // Don't wait for response to avoid message port errors
     } else {
       // Fallback to browser notification
       fallbackNotification(message);
@@ -128,14 +319,25 @@
       const titles = Array.from(elements).map((el) => el.textContent.trim());
       log(`Found ${titles.length} titles:`, titles);
 
-      const matched = titles.filter((title) =>
-        settings.keywords.some((keyword) =>
+      const matchedElements = Array.from(elements).filter((element) => {
+        const title = element.textContent.trim();
+        return settings.keywords.some((keyword) =>
           normalize(title).includes(normalize(keyword))
-        )
-      );
+        );
+      });
 
-      if (matched.length > 0) {
-        notifyUser(matched);
+      if (matchedElements.length > 0) {
+        // Extract party details for each matched element
+        const matches = matchedElements
+          .map((element) => getPartyDetails(element))
+          .filter((details) => details !== null);
+
+        if (matches.length > 0) {
+          log("Found matches with details:", matches);
+          notifyUser(matches);
+        } else {
+          log("No valid party details found for matches");
+        }
       } else {
         log("No matching titles found.");
       }
@@ -317,6 +519,16 @@
           } keywords</div>
         </div>
         
+        <div class="form-group">
+          <label>Notification History:</label>
+          <div style="font-size: 12px; color: #718096; margin-bottom: 8px;">
+            ${notifiedIds.size} parties already notified
+          </div>
+          <button class="save-button" id="palia-clear-history" style="background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%); margin-bottom: 10px;">
+            🗑️ Clear History
+          </button>
+        </div>
+        
         <button class="save-button" id="palia-save">💾 Save Settings</button>
       `;
     document.body.appendChild(panel);
@@ -340,6 +552,28 @@
         document
           .getElementById("palia-keywords")
           .addEventListener("input", updateKeywordCount);
+      }
+    };
+
+    document.getElementById("palia-clear-history").onclick = async () => {
+      if (
+        confirm(
+          "Are you sure you want to clear notification history? This will allow previously notified parties to be sent again."
+        )
+      ) {
+        notifiedIds.clear();
+        await saveNotifiedIds();
+
+        // Show success feedback
+        const button = document.getElementById("palia-clear-history");
+        const originalText = button.textContent;
+        button.textContent = "✅ Cleared!";
+        button.style.background =
+          "linear-gradient(135deg, #48bb78 0%, #38a169 100%)";
+
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
       }
     };
 
