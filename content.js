@@ -2,14 +2,17 @@
   "use strict";
 
   const DEFAULT_KEYWORDS = [
-    "cake",
-    "plushie",
-    "cakes",
-    "epic",
-    "sushi",
     "fish",
     "rare",
+    "epic",
     "legendary",
+    "t1",
+    "sashimi",
+    "sushi",
+    "pokebowl",
+    "poke bowl",
+    "taco",
+    "stew",
   ];
   const DEFAULT_REFRESH = 30;
   const STORAGE_KEY = "paliaNotifierSettings";
@@ -156,10 +159,120 @@
         }
       }
 
+      // Extract host name
+      let hostName = "Host not specified";
+
+      // Look for host name in spans with specific classes
+      // The host name appears after a profile image or initial div
+      const allSpans = linkElement.querySelectorAll("span");
+      log(`Found ${allSpans.length} spans for host extraction`);
+
+      for (const span of allSpans) {
+        const text = span.textContent.trim();
+
+        // Check if this span has the correct classes for host name
+        if (
+          !span.classList.contains("text-white") ||
+          !span.className.includes("text-[3.5cqw]")
+        ) {
+          continue;
+        }
+
+        log(`Checking span with text: "${text}"`);
+        log(`Span classes: ${span.className}`);
+
+        // Skip if this span contains time information
+        if (
+          text.match(
+            /^(?:< )?\d+[mhd]\s+ago$|^in\s+\d+[mhd]$|^\d{1,2}:\d{2}\s+(?:AM|PM)$|^\d{1,2}\s+\w+,?\s+\d{1,2}:\d{2}\s+(?:AM|PM)$/i
+          )
+        ) {
+          continue;
+        }
+
+        // Skip if this span contains activity type (Bug Catching, Cooking, etc.)
+        if (
+          text.match(
+            /^(Bug Catching|Cooking|Gardening|Furniture Making|Fishing|Foraging|Hunting|Mining)$/i
+          )
+        ) {
+          continue;
+        }
+
+        // Skip if this span contains location information
+        if (text.match(/^(Kilima Valley|Bahari Bay|Housing Plot)$/i)) {
+          continue;
+        }
+
+        // Skip if this span contains user count (e.g., "1/25", "3/3")
+        if (text.match(/^\d+\/\d+$/)) {
+          continue;
+        }
+
+        // Skip if this span contains item quantities (e.g., "100 × Sashimi")
+        if (text.match(/^\d+\s*×\s*.+$/)) {
+          continue;
+        }
+
+        // Skip if this span contains "Beginner friendly"
+        if (text.match(/^Beginner friendly$/i)) {
+          continue;
+        }
+
+        // Check if this span is in the same container as a profile image or initial div
+        const parentDiv = span.closest("div");
+        log(`Parent div found: ${!!parentDiv}`);
+
+        if (parentDiv) {
+          // Check if this div has the specific pattern for host containers
+          // Host containers have classes like "flex min-h-[6.75cqw] flex-row items-center gap-[1.5cqw]"
+          const hasHostContainerClasses =
+            parentDiv.className.includes("flex") &&
+            parentDiv.className.includes("items-center") &&
+            parentDiv.className.includes("gap-[1.5cqw]");
+
+          log(`Has host container classes: ${hasHostContainerClasses}`);
+
+          if (hasHostContainerClasses) {
+            // Look for a profile image container within this div
+            const allDivs = parentDiv.querySelectorAll("div");
+            log(`Found ${allDivs.length} divs in parent`);
+
+            let hasProfileImage = false;
+
+            for (const div of allDivs) {
+              log(`Checking div classes: ${div.className}`);
+              if (
+                div.classList.contains("@container") ||
+                div.className.includes("@container") ||
+                div.className.includes("size-[4cqw]")
+              ) {
+                log(`Found container div`);
+                if (
+                  div.querySelector("img") ||
+                  div.querySelector("span.select-none")
+                ) {
+                  log(`Found profile image or initial span`);
+                  hasProfileImage = true;
+                  break;
+                }
+              }
+            }
+
+            if (hasProfileImage) {
+              log(`Setting host name to: ${text}`);
+              hostName = text;
+              break;
+            }
+          }
+        }
+      }
+
       return {
         id,
         title: fullTitle,
         time: timeInfo,
+        host: hostName,
         url: window.location.origin + href,
       };
     } catch (error) {
@@ -179,7 +292,7 @@
       for (const match of matches) {
         const embed = {
           title: "🎉 Palia Party Match Found!",
-          description: `**${match.title}**\n\n⏰ **Time:** ${match.time}\n🆔 **Party ID:** \`${match.id}\``,
+          description: `**${match.title}**\n\n👤 **Host:** ${match.host}\n⏰ **Time:** ${match.time}\n🆔 **Party ID:** \`${match.id}\``,
           color: 0x9f7aea, // Purple color matching Palia theme
           fields: [
             {
@@ -255,11 +368,11 @@
     // Create summary message for fallback
     let message;
     if (newMatches.length === 1) {
-      message = `Found: ${newMatches[0].title}`;
+      message = `Found: ${newMatches[0].title} (Host: ${newMatches[0].host})`;
     } else {
       message = `Found ${newMatches.length} matches: ${newMatches
         .slice(0, 2)
-        .map((m) => m.title)
+        .map((m) => `${m.title} (${m.host})`)
         .join(", ")}${newMatches.length > 2 ? "..." : ""}`;
     }
 
