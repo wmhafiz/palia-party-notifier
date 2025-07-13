@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Palia Party Notifier",
+  "version": "2.0",
+  "description": "Notify for parties with matching keywords on Palia Party, with configurable UI settings and refresh timer.",
+  "permissions": ["notifications", "storage", "activeTab"],
+  "host_permissions": ["https://paliaparty.app/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://paliaparty.app/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "palia_icon_16.png",
+    "48": "palia_icon_48.png",
+    "128": "palia_icon_128.png"
+  }
+}
