@@ -165,7 +165,6 @@
       // Look for host name in spans with specific classes
       // The host name appears after a profile image or initial div
       const allSpans = linkElement.querySelectorAll("span");
-      log(`Found ${allSpans.length} spans for host extraction`);
 
       for (const span of allSpans) {
         const text = span.textContent.trim();
@@ -177,9 +176,6 @@
         ) {
           continue;
         }
-
-        log(`Checking span with text: "${text}"`);
-        log(`Span classes: ${span.className}`);
 
         // Skip if this span contains time information
         if (
@@ -221,7 +217,6 @@
 
         // Check if this span is in the same container as a profile image or initial div
         const parentDiv = span.closest("div");
-        log(`Parent div found: ${!!parentDiv}`);
 
         if (parentDiv) {
           // Check if this div has the specific pattern for host containers
@@ -231,28 +226,22 @@
             parentDiv.className.includes("items-center") &&
             parentDiv.className.includes("gap-[1.5cqw]");
 
-          log(`Has host container classes: ${hasHostContainerClasses}`);
-
           if (hasHostContainerClasses) {
             // Look for a profile image container within this div
             const allDivs = parentDiv.querySelectorAll("div");
-            log(`Found ${allDivs.length} divs in parent`);
 
             let hasProfileImage = false;
 
             for (const div of allDivs) {
-              log(`Checking div classes: ${div.className}`);
               if (
                 div.classList.contains("@container") ||
                 div.className.includes("@container") ||
                 div.className.includes("size-[4cqw]")
               ) {
-                log(`Found container div`);
                 if (
                   div.querySelector("img") ||
                   div.querySelector("span.select-none")
                 ) {
-                  log(`Found profile image or initial span`);
                   hasProfileImage = true;
                   break;
                 }
@@ -260,10 +249,67 @@
             }
 
             if (hasProfileImage) {
-              log(`Setting host name to: ${text}`);
               hostName = text;
               break;
             }
+          }
+        }
+      }
+
+      // Extract dish information
+      let dishName = "No dish specified";
+      let dishImage = null;
+      let dishQuantity = null;
+
+      // Look for dish containers with specific classes
+      const dishContainers = linkElement.querySelectorAll("div");
+      for (const container of dishContainers) {
+        // Check if this div has the dish container pattern
+        if (
+          container.className.includes(
+            "flex flex-row items-center gap-[1cqw]"
+          ) &&
+          container.className.includes("border-white/25") &&
+          container.className.includes("bg-white/15")
+        ) {
+          // Look for dish image
+          const dishImg = container.querySelector("img");
+          if (
+            dishImg &&
+            dishImg.src &&
+            dishImg.src.includes("/cooking/meals/")
+          ) {
+            dishImage = dishImg.src;
+
+            // Get dish name from img alt attribute as fallback
+            const altText = dishImg.alt;
+
+            // Look for dish name and quantity in the text content
+            const dishTextDiv = container.querySelector(
+              "div[class*='text-[3.5cqw]'][class*='text-white']"
+            );
+
+            if (dishTextDiv) {
+              const fullText = dishTextDiv.textContent.trim();
+
+              // Extract quantity and dish name (format: "100 × Fish Stew")
+              const quantityMatch = fullText.match(/^(\d+)\s*×\s*(.+)$/);
+              if (quantityMatch) {
+                dishQuantity = parseInt(quantityMatch[1]);
+                dishName = quantityMatch[2].trim();
+              } else {
+                // If no quantity pattern, use the full text as dish name
+                dishName = fullText || altText;
+              }
+            } else {
+              // Fallback to alt text if no text div found
+              dishName = altText;
+            }
+
+            log(
+              `Found dish: ${dishName} (${dishQuantity}x) - Image: ${dishImage}`
+            );
+            break;
           }
         }
       }
@@ -273,6 +319,11 @@
         title: fullTitle,
         time: timeInfo,
         host: hostName,
+        dish: {
+          name: dishName,
+          image: dishImage,
+          quantity: dishQuantity,
+        },
         url: window.location.origin + href,
       };
     } catch (error) {
@@ -290,9 +341,21 @@
 
       // Send individual embed for each party
       for (const match of matches) {
+        // Build description with dish info if available
+        let description = `**${match.title}**\n\n👤 **Host:** ${match.host}\n⏰ **Time:** ${match.time}`;
+
+        if (match.dish && match.dish.name !== "No dish specified") {
+          const dishInfo = match.dish.quantity
+            ? `${match.dish.quantity}x ${match.dish.name}`
+            : match.dish.name;
+          description += `\n🍽️ **Dish:** ${dishInfo}`;
+        }
+
+        description += `\n🆔 **Party ID:** \`${match.id}\``;
+
         const embed = {
           title: "🎉 Palia Party Match Found!",
-          description: `**${match.title}**\n\n👤 **Host:** ${match.host}\n⏰ **Time:** ${match.time}\n🆔 **Party ID:** \`${match.id}\``,
+          description: description,
           color: 0x9f7aea, // Purple color matching Palia theme
           fields: [
             {
@@ -302,7 +365,8 @@
             },
           ],
           thumbnail: {
-            url: paliaIconUrl,
+            url:
+              match.dish && match.dish.image ? match.dish.image : paliaIconUrl,
           },
           timestamp: currentTime,
           footer: {
@@ -368,11 +432,26 @@
     // Create summary message for fallback
     let message;
     if (newMatches.length === 1) {
-      message = `Found: ${newMatches[0].title} (Host: ${newMatches[0].host})`;
+      const match = newMatches[0];
+      let dishInfo = "";
+      if (match.dish && match.dish.name !== "No dish specified") {
+        dishInfo = match.dish.quantity
+          ? ` - ${match.dish.quantity}x ${match.dish.name}`
+          : ` - ${match.dish.name}`;
+      }
+      message = `Found: ${match.title} (Host: ${match.host}${dishInfo})`;
     } else {
       message = `Found ${newMatches.length} matches: ${newMatches
         .slice(0, 2)
-        .map((m) => `${m.title} (${m.host})`)
+        .map((m) => {
+          let dishInfo = "";
+          if (m.dish && m.dish.name !== "No dish specified") {
+            dishInfo = m.dish.quantity
+              ? ` - ${m.dish.quantity}x ${m.dish.name}`
+              : ` - ${m.dish.name}`;
+          }
+          return `${m.title} (${m.host}${dishInfo})`;
+        })
         .join(", ")}${newMatches.length > 2 ? "..." : ""}`;
     }
 
