@@ -9,6 +9,7 @@
     "t1",
     "sashimi",
     "sushi",
+    "poke",
     "pokebowl",
     "poke bowl",
     "taco",
@@ -342,7 +343,7 @@
       // Send individual embed for each party
       for (const match of matches) {
         // Build description with dish info if available
-        let description = `**${match.title}**\n\n👤 **Host:** ${match.host}\n⏰ **Time:** ${match.time}`;
+        let description = `👤 **Host:** ${match.host}\n⏰ **Time:** ${match.time}`;
 
         if (match.dish && match.dish.name !== "No dish specified") {
           const dishInfo = match.dish.quantity
@@ -351,10 +352,8 @@
           description += `\n🍽️ **Dish:** ${dishInfo}`;
         }
 
-        description += `\n🆔 **Party ID:** \`${match.id}\``;
-
         const embed = {
-          title: "🎉 Palia Party Match Found!",
+          title: match.title,
           description: description,
           color: 0x9f7aea, // Purple color matching Palia theme
           fields: [
@@ -370,7 +369,7 @@
           },
           timestamp: currentTime,
           footer: {
-            text: "Palia Party Notifier • New match found",
+            text: "Palia Party Notifier",
             icon_url: paliaIconUrl,
           },
         };
