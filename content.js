@@ -1,24 +1,96 @@
 (function () {
   "use strict";
 
-  const DEFAULT_KEYWORDS = [
-    "fish",
-    "rare",
-    "epic",
-    "legendary",
-    "t1",
-    "sashimi",
-    "sushi",
-    "poke",
-    "pokebowl",
-    "poke bowl",
-    "taco",
-    "stew",
+  const rareFish = [
+    "Midnight Paddlefish",
+    "Ancient Fish",
+    "Enchanted Pupfish",
+    "Giant Kilima Stingray",
+    "Beluga Sturgeon",
+    "Alligator Gar",
+    "Blobfish",
+    "Crimson Fangtooth",
+    "Hypnotic Moray",
+    "Void Ray",
+    "Mermaid"
   ];
+
+  const epicFish = [
+    "Blue Marlin",
+    "Bluefin Tuna",
+    "Yellowfin Tuna",
+    "Barracuda",
+    "Ribbontail Ray"
+  ];
+
+  const legendaryFish = [
+    "Ancient Fish"
+  ];
+
+  // === PARTY GROUPS CONFIGURATION ===
+  // Easy to add/remove groups - just modify this object
+  const PARTY_GROUPS = {
+    "Fish Dishes": {
+      keywords: ["fish", "rare", "epic", "legendary", "t1", "t2", "t3", "sashimi", "sushi", "poke", "pokebowl", "poke bowl", "taco", "fish stew"],
+      webhookUrl: "https://discord.com/api/webhooks/1393939260993704018/hiRehdCIc-daAuZZH0ATgq62WmlSkoKLiLnzsBpTCU1gzERCC_TDPDe_G5hAzqg0TjBK",
+      color: 0x3498db, // Blue
+      enabled: true
+    },
+    "Focus Food": {
+      keywords: [
+        "focus", "energy", "bean burger", "Bouillabaisse", "Fried",
+        "Pumpkin Curry", "Dumplings", "akwindu chappa", "stir fry", "Cabbage Rolls",
+        "Masala", "Spicy Rice", "Steak Dinner", "Apple Pie", "Noodle", "Spicy Rice Cakes",
+      ],
+      webhookUrl: "https://discord.com/api/webhooks/1394465867219341343/2NuQoxBUhPXfwsKivNsW0mK39dHXNGDuYSY5P2RF80Tsq7CQbQ4O_aSQWI86J191KszS",
+      color: 0x9b59b6, // Purple
+      enabled: true
+    },
+    "Giveaways": {
+      keywords: ["giveaway", "free", "plush", "new member", "gathering"],
+      webhookUrl: "https://discord.com/api/webhooks/1394466102620323912/Cf6-KbJGO9X6oLxqrxgIi6Uj1VkEsEe8kOpkY0O0XA1vQIEIlZmNZrOv4NjpEKnbdlYi",
+      color: 0xe74c3c, // Red
+      enabled: true
+    },
+    "Flow Tree": {
+      keywords: ["flow tree", "flow", "tree", "grove"],
+      webhookUrl: "https://discord.com/api/webhooks/1394466429897543720/X52FGeiK3TMQxrc_FDzZ1EvAuM2pHX_3facTu2tZ8QUAtqXRgByNB3Wv94H23hT9mPMW",
+      color: 0x27ae60, // Green
+      enabled: true
+    },
+    "Hunting": {
+      keywords: ["hunting", "hunt", "chapaa", "sernuk", "muujin", "ogopo", "ogopu"],
+      webhookUrl: "https://discord.com/api/webhooks/1394466499288371281/GidMTbSgmK2zmuYxYUN1Ih1yMHxU3A1nuPEK9shVhkkMzjhoXLsVVRHiGW0pTeQV57wF",
+      color: 0x8b4513, // Brown
+      enabled: true
+    },
+    "Bug Catching": {
+      keywords: ["bug catching", "bug", "lure"],
+      webhookUrl: "https://discord.com/api/webhooks/1394466586299207821/1W_BBu3KkAx0IT4mC7Kax2WHO-SnOrBEWe6ujWs76U0PSGrxSUFSRGoUdHB0cL_n5_t_",
+      color: 0xf39c12, // Orange
+      enabled: true
+    },
+    "Fishing": {
+      keywords: [
+        "fishing", "fish", "rare", "epic", "legendary", "t1", "t2", "t3",
+        ...rareFish,
+        ...epicFish,
+        ...legendaryFish
+      ],
+      webhookUrl: "https://discord.com/api/webhooks/1394466429897543720/X52FGeiK3TMQxrc_FDzZ1EvAuM2pHX_3facTu2tZ8QUAtqXRgByNB3Wv94H23hT9mPMW",
+      color: 0x27ae60, // Green
+      enabled: true
+    },
+    "Celebration Cakes": {
+      keywords: ["celebration cake", "cake", "birthday", "birthday cake"],
+      webhookUrl: "https://discord.com/api/webhooks/1394466004674809966/qpVh_p81Ry1Ob883jOV2-iLY6HxLIsD3KWReI-fc9WO9QV5ZyCY1FnOyVebsvGP2QDl0",
+      color: 0xff6b6b, // Light Red
+      enabled: true
+    }
+  };
+
   const DEFAULT_REFRESH = 30;
   const STORAGE_KEY = "paliaNotifierSettings";
-  const DISCORD_WEBHOOK_URL =
-    "https://discord.com/api/webhooks/1393939260993704018/hiRehdCIc-daAuZZH0ATgq62WmlSkoKLiLnzsBpTCU1gzERCC_TDPDe_G5hAzqg0TjBK";
   const NOTIFIED_IDS_KEY = "paliaNotifiedIds";
 
   let settings = {};
@@ -38,11 +110,32 @@
         settings = result[STORAGE_KEY];
       } else {
         settings = {
-          keywords: DEFAULT_KEYWORDS,
           notify: true,
           refresh: DEFAULT_REFRESH,
+          groupSettings: {}
         };
       }
+
+      // Always ensure groupSettings exists and has all current groups
+      if (!settings.groupSettings) {
+        settings.groupSettings = {};
+      }
+
+      // Initialize/update group settings with current groups
+      Object.keys(PARTY_GROUPS).forEach(groupName => {
+        if (!settings.groupSettings[groupName]) {
+          settings.groupSettings[groupName] = {
+            enabled: PARTY_GROUPS[groupName].enabled
+          };
+        }
+      });
+
+      // Clean up old group settings that no longer exist
+      Object.keys(settings.groupSettings).forEach(groupName => {
+        if (!PARTY_GROUPS[groupName]) {
+          delete settings.groupSettings[groupName];
+        }
+      });
 
       // Load notified IDs
       if (result[NOTIFIED_IDS_KEY]) {
@@ -51,10 +144,17 @@
     } catch (e) {
       console.error("Error loading settings:", e);
       settings = {
-        keywords: DEFAULT_KEYWORDS,
         notify: true,
         refresh: DEFAULT_REFRESH,
+        groupSettings: {}
       };
+
+      // Initialize group settings with defaults
+      Object.keys(PARTY_GROUPS).forEach(groupName => {
+        settings.groupSettings[groupName] = {
+          enabled: PARTY_GROUPS[groupName].enabled
+        };
+      });
     }
   }
 
@@ -333,76 +433,114 @@
     }
   }
 
+  function findMatchingGroups(title) {
+    const normalizedTitle = normalize(title);
+    const matchingGroups = [];
+
+    Object.entries(PARTY_GROUPS).forEach(([groupName, groupConfig]) => {
+      // Check if group is enabled in settings
+      if (!settings.groupSettings[groupName]?.enabled) {
+        return;
+      }
+
+      // Check if any keyword matches
+      const hasMatch = groupConfig.keywords.some(keyword =>
+        normalizedTitle.includes(normalize(keyword))
+      );
+
+      if (hasMatch) {
+        matchingGroups.push({
+          name: groupName,
+          config: groupConfig
+        });
+      }
+    });
+
+    return matchingGroups;
+  }
+
   async function sendDiscordNotification(matches) {
     if (!settings.notify || matches.length === 0) return;
 
     try {
-      const paliaIconUrl = "https://i.ibb.co/Y451dW1P/palia-icon-128.png"; // Replace with actual hosted Palia icon
+      const paliaIconUrl = "https://i.ibb.co/Y451dW1P/palia-icon-128.png";
       const currentTime = new Date().toISOString();
 
-      // Send individual embed for each party
+      // Group matches by their matching groups
+      const groupedMatches = new Map();
+
       for (const match of matches) {
-        // Build description with dish info if available
-        let description = `👤 **Host:** ${match.host}\n⏰ **Time:** ${match.time}`;
+        const matchingGroups = findMatchingGroups(match.title);
 
-        if (match.dish && match.dish.name !== "No dish specified") {
-          const dishInfo = match.dish.quantity
-            ? `${match.dish.quantity}x ${match.dish.name}`
-            : match.dish.name;
-          description += `\n🍽️ **Dish:** ${dishInfo}`;
+        for (const group of matchingGroups) {
+          if (!groupedMatches.has(group.name)) {
+            groupedMatches.set(group.name, []);
+          }
+          groupedMatches.get(group.name).push({
+            ...match,
+            group: group
+          });
         }
+      }
 
-        const embed = {
-          title: match.title,
-          description: description,
-          color: 0x9f7aea, // Purple color matching Palia theme
-          fields: [
-            {
-              name: "🔗 Join Party",
-              value: `[Click here to join the party](${match.url})`,
-              inline: false,
+      // Send notifications for each group
+      for (const [groupName, groupMatches] of groupedMatches) {
+        const groupConfig = PARTY_GROUPS[groupName];
+
+        for (const match of groupMatches) {
+          // Build description with dish info if available
+          let description = `👤 **Host:** ${match.host}\n⏰ **Time:** ${match.time}`;
+
+          if (match.dish && match.dish.name !== "No dish specified") {
+            const dishInfo = match.dish.quantity
+              ? `${match.dish.quantity}x ${match.dish.name}`
+              : match.dish.name;
+            description += `\n🍽️ **Dish:** ${dishInfo}`;
+          }
+
+          const embed = {
+            title: `${groupName}: ${match.title}`,
+            description: description,
+            color: groupConfig.color,
+            fields: [
+              {
+                name: "🔗 Join Party",
+                value: `[Click here to join the party](${match.url})`,
+                inline: false,
+              },
+            ],
+            thumbnail: {
+              url: match.dish && match.dish.image ? match.dish.image : paliaIconUrl,
             },
-          ],
-          thumbnail: {
-            url:
-              match.dish && match.dish.image ? match.dish.image : paliaIconUrl,
-          },
-          timestamp: currentTime,
-          footer: {
-            text: "Palia Party Notifier",
-            icon_url: paliaIconUrl,
-          },
-        };
+            timestamp: currentTime,
+            footer: {
+              text: `Palia Party Notifier - ${groupName}`,
+              icon_url: paliaIconUrl,
+            },
+          };
 
-        const payload = {
-          username: "Palia Party Notifier",
-          avatar_url: paliaIconUrl,
-          embeds: [embed],
-        };
+          const payload = {
+            username: `Palia ${groupName}`,
+            avatar_url: paliaIconUrl,
+            embeds: [embed],
+          };
 
-        const response = await fetch(DISCORD_WEBHOOK_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
+          const response = await fetch(groupConfig.webhookUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
 
-        if (response.ok) {
-          log(`Discord notification sent successfully for party: ${match.id}`);
+          if (response.ok) {
+            log(`Discord notification sent successfully for ${groupName} party: ${match.id}`);
+            notifiedIds.add(match.id);
+          } else {
+            log(`Failed to send Discord notification for ${groupName} party ${match.id}:`, response.status, response.statusText);
+          }
 
-          // Mark this ID as notified
-          notifiedIds.add(match.id);
-        } else {
-          log(
-            `Failed to send Discord notification for party ${match.id}:`,
-            response.status,
-            response.statusText
-          );
-        }
-
-        // Add a small delay between messages to avoid rate limiting
-        if (matches.length > 1) {
+          // Add a small delay between messages to avoid rate limiting
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
@@ -432,26 +570,18 @@
     let message;
     if (newMatches.length === 1) {
       const match = newMatches[0];
+      const matchingGroups = findMatchingGroups(match.title);
+      const groupNames = matchingGroups.map(g => g.name).join(", ");
+
       let dishInfo = "";
       if (match.dish && match.dish.name !== "No dish specified") {
         dishInfo = match.dish.quantity
           ? ` - ${match.dish.quantity}x ${match.dish.name}`
           : ` - ${match.dish.name}`;
       }
-      message = `Found: ${match.title} (Host: ${match.host}${dishInfo})`;
+      message = `Found [${groupNames}]: ${match.title} (Host: ${match.host}${dishInfo})`;
     } else {
-      message = `Found ${newMatches.length} matches: ${newMatches
-        .slice(0, 2)
-        .map((m) => {
-          let dishInfo = "";
-          if (m.dish && m.dish.name !== "No dish specified") {
-            dishInfo = m.dish.quantity
-              ? ` - ${m.dish.quantity}x ${m.dish.name}`
-              : ` - ${m.dish.name}`;
-          }
-          return `${m.title} (${m.host}${dishInfo})`;
-        })
-        .join(", ")}${newMatches.length > 2 ? "..." : ""}`;
+      message = `Found ${newMatches.length} matches across multiple groups`;
     }
 
     // Try Chrome extension notification as fallback
@@ -510,11 +640,15 @@
       const titles = Array.from(elements).map((el) => el.textContent.trim());
       log(`Found ${titles.length} titles:`, titles);
 
-      const matchedElements = Array.from(elements).filter((element) => {
+      const matchedElements = [];
+
+      Array.from(elements).forEach((element) => {
         const title = element.textContent.trim();
-        return settings.keywords.some((keyword) =>
-          normalize(title).includes(normalize(keyword))
-        );
+        const matchingGroups = findMatchingGroups(title);
+
+        if (matchingGroups.length > 0) {
+          matchedElements.push(element);
+        }
       });
 
       if (matchedElements.length > 0) {
@@ -575,7 +709,9 @@
           z-index: 10000;
           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
           border-radius: 16px;
-          width: 300px;
+          width: 320px;
+          max-height: 80vh;
+          overflow-y: auto;
           animation: slideIn 0.3s ease;
         }
         @keyframes slideIn {
@@ -601,7 +737,10 @@
         #palia-settings .checkbox-group {
           display: flex;
           align-items: center;
-          margin-bottom: 16px;
+          margin-bottom: 12px;
+          padding: 8px;
+          border-radius: 8px;
+          background: rgba(0, 0, 0, 0.02);
         }
         #palia-settings .checkbox-group input[type="checkbox"] {
           width: 18px;
@@ -612,6 +751,14 @@
         #palia-settings .checkbox-group label {
           margin-bottom: 0;
           cursor: pointer;
+          flex: 1;
+        }
+        #palia-settings .group-indicator {
+          width: 12px;
+          height: 12px;
+          border-radius: 50%;
+          margin-left: 8px;
+          flex-shrink: 0;
         }
         #palia-settings .input-group {
           display: flex;
@@ -627,21 +774,6 @@
           transition: border-color 0.2s ease;
         }
         #palia-settings input[type="number"]:focus {
-          outline: none;
-          border-color: #667eea;
-        }
-        #palia-settings textarea {
-          width: 100%;
-          min-height: 80px;
-          padding: 12px;
-          border: 2px solid #e2e8f0;
-          border-radius: 8px;
-          font-size: 14px;
-          font-family: inherit;
-          resize: vertical;
-          transition: border-color 0.2s ease;
-        }
-        #palia-settings textarea:focus {
           outline: none;
           border-color: #667eea;
         }
@@ -665,10 +797,19 @@
         #palia-settings .save-button:active {
           transform: translateY(0);
         }
-        #palia-settings .keyword-count {
+        #palia-settings .section-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #2d3748;
+          margin-bottom: 12px;
+          border-bottom: 2px solid #e2e8f0;
+          padding-bottom: 8px;
+        }
+        #palia-settings .group-keywords {
           font-size: 12px;
           color: #718096;
           margin-top: 4px;
+          font-style: italic;
         }
       `;
     document.head.appendChild(style);
@@ -678,36 +819,54 @@
     toggleBtn.innerHTML = "⚙️ Settings";
     document.body.appendChild(toggleBtn);
 
+    // Generate group checkboxes
+    const groupCheckboxes = Object.entries(PARTY_GROUPS).map(([groupName, groupConfig]) => {
+      // Ensure groupSettings exists and has this group
+      if (!settings.groupSettings) {
+        settings.groupSettings = {};
+      }
+      if (!settings.groupSettings[groupName]) {
+        settings.groupSettings[groupName] = {
+          enabled: groupConfig.enabled
+        };
+      }
+
+      const isEnabled = settings.groupSettings[groupName]?.enabled !== false;
+      const colorHex = `#${groupConfig.color.toString(16).padStart(6, '0')}`;
+
+      return `
+        <div class="checkbox-group">
+          <input type="checkbox" id="group-${groupName}" ${isEnabled ? "checked" : ""}/>
+          <label for="group-${groupName}">${groupName}</label>
+          <div class="group-indicator" style="background-color: ${colorHex};"></div>
+        </div>
+        <div class="group-keywords">Keywords: ${groupConfig.keywords.join(", ")}</div>
+      `;
+    }).join("");
+
     const panel = document.createElement("div");
     panel.id = "palia-settings";
     panel.innerHTML = `
         <div class="title">🎉 Palia Party Notifier</div>
         
-        <div class="checkbox-group">
-          <input type="checkbox" id="palia-toggle" ${
-            settings.notify ? "checked" : ""
-          }/>
-          <label for="palia-toggle">Enable Notifications</label>
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="palia-toggle" ${settings.notify ? "checked" : ""}/>
+            <label for="palia-toggle">Enable Notifications</label>
+          </div>
         </div>
         
         <div class="form-group">
           <label>Auto-refresh interval:</label>
           <div class="input-group">
-            <input type="number" id="palia-refresh" value="${
-              settings.refresh
-            }" min="10" max="300">
+            <input type="number" id="palia-refresh" value="${settings.refresh}" min="10" max="300">
             <span>seconds</span>
           </div>
         </div>
         
         <div class="form-group">
-          <label for="palia-keywords">Keywords to watch for:</label>
-          <textarea id="palia-keywords" placeholder="Enter keywords separated by commas...">${settings.keywords.join(
-            ", "
-          )}</textarea>
-          <div class="keyword-count">Current: ${
-            settings.keywords.length
-          } keywords</div>
+          <div class="section-title">Party Groups</div>
+          ${groupCheckboxes}
         </div>
         
         <div class="form-group">
@@ -727,23 +886,6 @@
     toggleBtn.onclick = () => {
       const isVisible = panel.style.display === "block";
       panel.style.display = isVisible ? "none" : "block";
-
-      if (!isVisible) {
-        // Update keyword count when opening
-        const updateKeywordCount = () => {
-          const keywords = document
-            .getElementById("palia-keywords")
-            .value.split(",")
-            .map((k) => k.trim())
-            .filter(Boolean);
-          document.querySelector(
-            ".keyword-count"
-          ).textContent = `Current: ${keywords.length} keywords`;
-        };
-        document
-          .getElementById("palia-keywords")
-          .addEventListener("input", updateKeywordCount);
-      }
     };
 
     document.getElementById("palia-clear-history").onclick = async () => {
@@ -771,17 +913,22 @@
     document.getElementById("palia-save").onclick = async () => {
       const notifyCheckbox = document.getElementById("palia-toggle");
       const refreshInput = document.getElementById("palia-refresh");
-      const keywordsInput = document.getElementById("palia-keywords");
 
       settings.notify = notifyCheckbox.checked;
       settings.refresh = Math.max(
         10,
         Math.min(300, parseInt(refreshInput.value, 10) || 30)
       );
-      settings.keywords = keywordsInput.value
-        .split(",")
-        .map((k) => k.trim())
-        .filter(Boolean);
+
+      // Update group settings
+      Object.keys(PARTY_GROUPS).forEach(groupName => {
+        const checkbox = document.getElementById(`group-${groupName}`);
+        if (checkbox) {
+          settings.groupSettings[groupName] = {
+            enabled: checkbox.checked
+          };
+        }
+      });
 
       await saveSettings();
 
