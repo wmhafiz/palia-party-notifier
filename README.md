@@ -14,6 +14,7 @@ A Chrome extension that monitors Palia party listings and sends rich Discord not
 ### 🎯 Smart Detection
 
 - **Keyword Matching**: Customizable keywords (cake, epic, rare, etc.)
+- **Category Filtering**: Automatic detection and filtering by activity type (Cooking, Hunting, Fishing, etc.)
 - **ID Extraction**: Automatically extracts party IDs from links
 - **Location Detection**: Shows party location (Kilima Valley, Bahari Bay)
 - **Title Parsing**: Uses both link titles and text content
@@ -57,8 +58,10 @@ A Chrome extension that monitors Palia party listings and sends rich Discord not
 🎉 Palia Party Match Found!
 **EPIC CAKE PARTY 🍰 Join now!**
 
-📍 Location: Kilima Valley
-🆔 Party ID: epic123
+👤 Host: PlayerName
+⏰ Time: 5m ago
+🎯 Activity: Cooking
+🍽️ Dish: 100x Celebration Cake
 
 🔗 Join Party
 [Click here to join the party](https://example.com/epic123)
@@ -71,13 +74,13 @@ A Chrome extension that monitors Palia party listings and sends rich Discord not
 Found 3 matching parties:
 
 🎯 EPIC CAKE PARTY 🍰 Join now!
-📍 Kilima Valley • 🆔 epic123 • [Join Party](https://example.com/epic123)
+👤 Host: PlayerName • ⏰ Time: 5m ago • 🎯 Activity: Cooking • [Join Party](https://example.com/epic123)
 
 🎯 RARE FISH HUNTING 🐟 Legendary spots
-📍 Bahari Bay • 🆔 rare456 • [Join Party](https://example.com/rare456)
+👤 Host: FisherPro • ⏰ Time: 2m ago • 🎯 Activity: Fishing • [Join Party](https://example.com/rare456)
 
-🎯 PLUSHIE COLLECTION EVENT 🧸 Epic rewards
-📍 Kilima Valley • 🆔 plushie789 • [Join Party](https://example.com/plushie789)
+🎯 CHAPAA HUNT 🦌 Epic rewards
+👤 Host: HunterMax • ⏰ Time: 8m ago • 🎯 Activity: Hunting • [Join Party](https://example.com/hunt789)
 ```
 
 ## 🔧 Technical Details
@@ -105,14 +108,43 @@ palia-party-notifier/
 #### `getPartyDetails(element)`
 
 - Extracts party information from DOM elements
-- Gets ID, title, location, and URL
+- Gets ID, title, location, category, host, time, and dish details
 - Handles various HTML structures
+- Automatically detects activity category (Cooking, Hunting, etc.)
 
 #### `notifyUser(matches)`
 
 - Filters out already notified parties
 - Calls Discord notification function
 - Provides fallback browser notifications
+
+#### `findMatchingGroups(party)`
+
+- Matches parties against configured party groups
+- Filters by both keywords and activity category
+- Only notifies if party category matches group requirements
+- Supports 'any' category for universal groups (like Giveaways)
+
+### Category Filtering
+
+The extension automatically detects the activity category from party listings and filters notifications accordingly:
+
+- **Activity Detection**: Extracts category from party UI elements (Cooking, Hunting, Fishing, etc.)
+- **Group Matching**: Each party group has a specific category requirement
+- **Smart Filtering**: Prevents cooking groups from matching hunting parties
+- **Universal Groups**: Some groups (like Giveaways) accept any category
+
+#### Supported Categories
+
+- `Cooking` - Food preparation parties
+- `Hunting` - Animal hunting activities
+- `Fishing` - Fish catching events
+- `Bug Catching` - Insect collection parties
+- `Foraging` - Plant/resource gathering
+- `Gardening` - Farming activities
+- `Furniture Making` - Crafting parties
+- `Mining` - Resource extraction
+- `any` - Universal category (matches all)
 
 ### Storage Management
 

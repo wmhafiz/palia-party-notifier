@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Palia Party Category Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .party {
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            padding: 10px;
+        }
+
+        .test-log {
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 4px solid #007cba;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Palia Party Category Extraction Test</h1>
+
+    <!-- Test Party 1: Cooking -->
+    <div class="party">
+        <a href="/test1" title="Epic Fish Stew Party">
+            <span class="line-clamp-3">Epic Fish Stew Party</span>
+            <div>
+                <div class="flex min-h-[6.75cqw] flex-row items-center gap-[1cqw]">
+                    <img alt="Cooking" src="/assets/img/Icon_Currency_Cooking.png" class="size-[4cqw]" />
+                    <span class="text-[3.5cqw] text-white">Cooking</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Test Party 2: Hunting -->
+    <div class="party">
+        <a href="/test2" title="Chapaa Hunt">
+            <span class="line-clamp-3">Chapaa Hunt</span>
+            <div>
+                <div class="flex min-h-[6.75cqw] flex-row items-center gap-[1cqw]">
+                    <img alt="Hunting" src="/assets/img/Icon_Currency_Hunting.png" class="size-[4cqw]" />
+                    <span class="text-[3.5cqw] text-white">Hunting</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Test Party 3: Bug Catching -->
+    <div class="party">
+        <a href="/test3" title="Rare Bug Hunting">
+            <span class="line-clamp-3">Rare Bug Hunting</span>
+            <div>
+                <div class="flex min-h-[6.75cqw] flex-row items-center gap-[1cqw]">
+                    <img alt="Bug Catching" src="/assets/img/Icon_Currency_Bug.png" class="size-[4cqw]" />
+                    <span class="text-[3.5cqw] text-white">Bug Catching</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Test Party 4: Fishing -->
+    <div class="party">
+        <a href="/test4" title="Epic Fish Gathering">
+            <span class="line-clamp-3">Epic Fish Gathering</span>
+            <div>
+                <div class="flex min-h-[6.75cqw] flex-row items-center gap-[1cqw]">
+                    <img alt="Fishing" src="/assets/img/Icon_Currency_Fishing.png" class="size-[4cqw]" />
+                    <span class="text-[3.5cqw] text-white">Fishing</span>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="test-log" id="test-results">
+        <h3>Test Results:</h3>
+        <div id="log-output"></div>
+    </div>
+
+    <script>
+        // Mock chrome storage for testing
+        if (!window.chrome) {
+            window.chrome = {
+                storage: {
+                    local: {
+                        get: (keys, callback) => {
+                            // Return empty settings for testing
+                            callback({});
+                        },
+                        set: (data, callback) => {
+                            if (callback) callback();
+                        }
+                    }
+                },
+                runtime: {
+                    sendMessage: () => { }
+                }
+            };
+        }
+
+        // Override console.log to capture test output
+        const originalLog = console.log;
+        const logOutput = document.getElementById('log-output');
+        console.log = function (...args) {
+            originalLog.apply(console, args);
+            if (args[0] === '[PaliaNotifier]') {
+                const logDiv = document.createElement('div');
+                logDiv.textContent = args.slice(1).join(' ');
+                logOutput.appendChild(logDiv);
+            }
+        };
+
+        function runTest() {
+            console.log('[PaliaNotifier]', '=== Starting Category Extraction Test ===');
+
+            // Get all party title elements
+            const elements = document.querySelectorAll('.line-clamp-3');
+            console.log('[PaliaNotifier]', `Found ${elements.length} party elements`);
+
+            elements.forEach((element, index) => {
+                console.log('[PaliaNotifier]', `--- Testing Party ${index + 1} ---`);
+                // This would call the actual getPartyDetails function
+                // For now, just log the structure
+                const linkElement = element.closest("a[href]");
+                if (linkElement) {
+                    const title = element.textContent.trim();
+                    const href = linkElement.getAttribute("href");
+
+                    // Try to find category
+                    let category = "Unknown";
+                    const categorySpans = linkElement.querySelectorAll("span.text-white");
+                    for (const span of categorySpans) {
+                        const text = span.textContent.trim();
+                        if (text.match(/^(Bug Catching|Cooking|Gardening|Furniture Making|Fishing|Foraging|Hunting|Mining)$/i)) {
+                            category = text;
+                            break;
+                        }
+                    }
+
+                    console.log('[PaliaNotifier]', `Title: ${title}`);
+                    console.log('[PaliaNotifier]', `Href: ${href}`);
+                    console.log('[PaliaNotifier]', `Category: ${category}`);
+
+                    // Test if this would match different groups
+                    console.log('[PaliaNotifier]', `Would match Fish Dishes group: ${category === 'Cooking' && title.toLowerCase().includes('fish')}`);
+                    console.log('[PaliaNotifier]', `Would match Hunting group: ${category === 'Hunting'}`);
+                    console.log('[PaliaNotifier]', `Would match Bug Catching group: ${category === 'Bug Catching'}`);
+                    console.log('[PaliaNotifier]', `Would match Fishing group: ${category === 'Fishing'}`);
+                }
+            });
+
+            console.log('[PaliaNotifier]', '=== Test Complete ===');
+        }
+
+        // Run test when page loads
+        window.addEventListener('load', runTest);
+    </script>
+</body>
+
+</html>

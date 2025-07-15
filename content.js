@@ -34,7 +34,8 @@
       keywords: ["fish", "rare", "epic", "legendary", "t1", "t2", "t3", "sashimi", "sushi", "poke", "pokebowl", "poke bowl", "taco", "fish stew"],
       webhookUrl: "https://discord.com/api/webhooks/1393939260993704018/hiRehdCIc-daAuZZH0ATgq62WmlSkoKLiLnzsBpTCU1gzERCC_TDPDe_G5hAzqg0TjBK",
       color: 0x3498db, // Blue
-      enabled: true
+      enabled: true,
+      category: 'Cooking'
     },
     "Focus Food": {
       keywords: [
@@ -44,31 +45,36 @@
       ],
       webhookUrl: "https://discord.com/api/webhooks/1394465867219341343/2NuQoxBUhPXfwsKivNsW0mK39dHXNGDuYSY5P2RF80Tsq7CQbQ4O_aSQWI86J191KszS",
       color: 0x9b59b6, // Purple
-      enabled: true
+      enabled: true,
+      category: 'Cooking'
     },
     "Giveaways": {
       keywords: ["giveaway", "free", "plush", "new member", "gathering"],
       webhookUrl: "https://discord.com/api/webhooks/1394466102620323912/Cf6-KbJGO9X6oLxqrxgIi6Uj1VkEsEe8kOpkY0O0XA1vQIEIlZmNZrOv4NjpEKnbdlYi",
       color: 0xe74c3c, // Red
-      enabled: true
+      enabled: true,
+      category: 'any'
     },
     "Flow Tree": {
       keywords: ["flow tree", "flow", "tree", "grove"],
       webhookUrl: "https://discord.com/api/webhooks/1394466429897543720/X52FGeiK3TMQxrc_FDzZ1EvAuM2pHX_3facTu2tZ8QUAtqXRgByNB3Wv94H23hT9mPMW",
       color: 0x27ae60, // Green
-      enabled: true
+      enabled: true,
+      category: 'Foraging'
     },
     "Hunting": {
       keywords: ["hunting", "hunt", "chapaa", "sernuk", "muujin", "ogopo", "ogopu"],
       webhookUrl: "https://discord.com/api/webhooks/1394466499288371281/GidMTbSgmK2zmuYxYUN1Ih1yMHxU3A1nuPEK9shVhkkMzjhoXLsVVRHiGW0pTeQV57wF",
       color: 0x8b4513, // Brown
-      enabled: true
+      enabled: true,
+      category: 'Hunting'
     },
     "Bug Catching": {
       keywords: ["bug catching", "bug", "lure"],
       webhookUrl: "https://discord.com/api/webhooks/1394466586299207821/1W_BBu3KkAx0IT4mC7Kax2WHO-SnOrBEWe6ujWs76U0PSGrxSUFSRGoUdHB0cL_n5_t_",
       color: 0xf39c12, // Orange
-      enabled: true
+      enabled: true,
+      category: 'Bug Catching'
     },
     "Fishing": {
       keywords: [
@@ -79,13 +85,15 @@
       ],
       webhookUrl: "https://discord.com/api/webhooks/1394484347003863120/Z9bBrWLdy4yGL-AkqmGgFCk68pEB8YEsjsYXBq7fj3iuox5Gx4mJrhPt1dEMgeocfxeY",
       color: 0x27ae60, // Green
-      enabled: true
+      enabled: true,
+      category: 'Fishing'
     },
     "Celebration Cakes": {
       keywords: ["celebration cake", "cake", "birthday", "birthday cake"],
       webhookUrl: "https://discord.com/api/webhooks/1394466004674809966/qpVh_p81Ry1Ob883jOV2-iLY6HxLIsD3KWReI-fc9WO9QV5ZyCY1FnOyVebsvGP2QDl0",
       color: 0xff6b6b, // Light Red
-      enabled: true
+      enabled: true,
+      category: 'Cooking'
     }
   };
 
@@ -206,6 +214,39 @@
       // Try to get additional details from the link
       const titleAttr = linkElement.getAttribute("title");
       const fullTitle = titleAttr || title;
+
+      // Extract category from party details
+      let category = "Unknown";
+
+      // Look for category/activity type spans
+      const categorySpans = linkElement.querySelectorAll("span.text-white");
+      for (const span of categorySpans) {
+        const text = span.textContent.trim();
+
+        // Check if this span contains activity type
+        if (text.match(/^(Bug Catching|Cooking|Gardening|Furniture Making|Fishing|Foraging|Hunting|Mining)$/i)) {
+          category = text;
+          log(`Found category from span: ${category}`);
+          break;
+        }
+      }
+
+      // Alternative method: look for activity icons with specific alt attributes
+      if (category === "Unknown") {
+        const activityIcons = linkElement.querySelectorAll("img[alt]");
+        for (const icon of activityIcons) {
+          const alt = icon.alt;
+          if (alt.match(/^(Bug Catching|Cooking|Gardening|Furniture Making|Fishing|Foraging|Hunting|Mining)$/i)) {
+            category = alt;
+            log(`Found category from img alt: ${category}`);
+            break;
+          }
+        }
+      }
+
+      if (category === "Unknown") {
+        log(`Could not determine category for party: ${fullTitle}`);
+      }
 
       // Try to find the time information by looking for clock SVG + adjacent text
       let timeInfo = "Time not specified";
@@ -420,6 +461,7 @@
         title: fullTitle,
         time: timeInfo,
         host: hostName,
+        category: category,
         dish: {
           name: dishName,
           image: dishImage,
@@ -433,13 +475,21 @@
     }
   }
 
-  function findMatchingGroups(title) {
-    const normalizedTitle = normalize(title);
+  function findMatchingGroups(party) {
+    const normalizedTitle = normalize(party.title);
     const matchingGroups = [];
+
+    log(`Checking party "${party.title}" (Category: ${party.category}) for matches...`);
 
     Object.entries(PARTY_GROUPS).forEach(([groupName, groupConfig]) => {
       // Check if group is enabled in settings
       if (!settings.groupSettings[groupName]?.enabled) {
+        return;
+      }
+
+      // Check category filter
+      if (groupConfig.category !== 'any' && groupConfig.category !== party.category) {
+        log(`  ${groupName}: Category mismatch (wants ${groupConfig.category}, party is ${party.category})`);
         return;
       }
 
@@ -449,13 +499,17 @@
       );
 
       if (hasMatch) {
+        log(`  ${groupName}: MATCH! (keyword match + category ${groupConfig.category})`);
         matchingGroups.push({
           name: groupName,
           config: groupConfig
         });
+      } else {
+        log(`  ${groupName}: No keyword match`);
       }
     });
 
+    log(`Found ${matchingGroups.length} matching groups for "${party.title}"`);
     return matchingGroups;
   }
 
@@ -470,7 +524,7 @@
       const groupedMatches = new Map();
 
       for (const match of matches) {
-        const matchingGroups = findMatchingGroups(match.title);
+        const matchingGroups = findMatchingGroups(match);
 
         for (const group of matchingGroups) {
           if (!groupedMatches.has(group.name)) {
@@ -491,6 +545,10 @@
           // Build description with dish info if available
           let description = `👤 **Host:** ${match.host}\n⏰ **Time:** ${match.time}`;
 
+          if (match.category && match.category !== "Unknown") {
+            description += `\n🎯 **Activity:** ${match.category}`;
+          }
+
           if (match.dish && match.dish.name !== "No dish specified") {
             const dishInfo = match.dish.quantity
               ? `${match.dish.quantity}x ${match.dish.name}`
@@ -499,7 +557,7 @@
           }
 
           const embed = {
-            title: `${groupName}: ${match.title}`,
+            title: match.title,
             description: description,
             color: groupConfig.color,
             fields: [
@@ -570,7 +628,7 @@
     let message;
     if (newMatches.length === 1) {
       const match = newMatches[0];
-      const matchingGroups = findMatchingGroups(match.title);
+      const matchingGroups = findMatchingGroups(match);
       const groupNames = matchingGroups.map(g => g.name).join(", ");
 
       let dishInfo = "";
@@ -640,31 +698,24 @@
       const titles = Array.from(elements).map((el) => el.textContent.trim());
       log(`Found ${titles.length} titles:`, titles);
 
-      const matchedElements = [];
+      // Extract party details for all elements first
+      const allParties = Array.from(elements)
+        .map((element) => getPartyDetails(element))
+        .filter((details) => details !== null);
 
-      Array.from(elements).forEach((element) => {
-        const title = element.textContent.trim();
-        const matchingGroups = findMatchingGroups(title);
+      log(`Extracted details for ${allParties.length} parties`);
 
-        if (matchingGroups.length > 0) {
-          matchedElements.push(element);
-        }
+      // Find matches based on party details (including category)
+      const matches = allParties.filter((party) => {
+        const matchingGroups = findMatchingGroups(party);
+        return matchingGroups.length > 0;
       });
 
-      if (matchedElements.length > 0) {
-        // Extract party details for each matched element
-        const matches = matchedElements
-          .map((element) => getPartyDetails(element))
-          .filter((details) => details !== null);
-
-        if (matches.length > 0) {
-          log("Found matches with details:", matches);
-          notifyUser(matches);
-        } else {
-          log("No valid party details found for matches");
-        }
+      if (matches.length > 0) {
+        log("Found matches with details:", matches);
+        notifyUser(matches);
       } else {
-        log("No matching titles found.");
+        log("No matching parties found.");
       }
     } catch (err) {
       log("Error during check:", err.message);
