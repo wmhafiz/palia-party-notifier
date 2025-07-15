@@ -77,7 +77,7 @@
         ...epicFish,
         ...legendaryFish
       ],
-      webhookUrl: "https://discord.com/api/webhooks/1394466429897543720/X52FGeiK3TMQxrc_FDzZ1EvAuM2pHX_3facTu2tZ8QUAtqXRgByNB3Wv94H23hT9mPMW",
+      webhookUrl: "https://discord.com/api/webhooks/1394484347003863120/Z9bBrWLdy4yGL-AkqmGgFCk68pEB8YEsjsYXBq7fj3iuox5Gx4mJrhPt1dEMgeocfxeY",
       color: 0x27ae60, // Green
       enabled: true
     },
