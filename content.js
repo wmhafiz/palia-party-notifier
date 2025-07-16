@@ -12,7 +12,7 @@
     "Crimson Fangtooth",
     "Hypnotic Moray",
     "Void Ray",
-    "Mermaid"
+    "Mermaid",
   ];
 
   const epicFish = [
@@ -20,81 +20,130 @@
     "Bluefin Tuna",
     "Yellowfin Tuna",
     "Barracuda",
-    "Ribbontail Ray"
+    "Ribbontail Ray",
   ];
 
-  const legendaryFish = [
-    "Ancient Fish"
-  ];
+  const legendaryFish = ["Ancient Fish"];
 
   // === PARTY GROUPS CONFIGURATION ===
   // Easy to add/remove groups - just modify this object
   const PARTY_GROUPS = {
     "Fish Dishes": {
-      keywords: ["fish", "rare", "epic", "legendary", "t1", "t2", "t3", "sashimi", "sushi", "poke", "pokebowl", "poke bowl", "taco", "fish stew"],
-      webhookUrl: "https://discord.com/api/webhooks/1393939260993704018/hiRehdCIc-daAuZZH0ATgq62WmlSkoKLiLnzsBpTCU1gzERCC_TDPDe_G5hAzqg0TjBK",
+      keywords: [
+        "fish",
+        "rare",
+        "epic",
+        "legendary",
+        "t1",
+        "t2",
+        "t3",
+        "sashimi",
+        "sushi",
+        "poke",
+        "pokebowl",
+        "poke bowl",
+        "taco",
+        "fish stew",
+      ],
+      webhookUrl:
+        "https://discord.com/api/webhooks/1393939260993704018/hiRehdCIc-daAuZZH0ATgq62WmlSkoKLiLnzsBpTCU1gzERCC_TDPDe_G5hAzqg0TjBK",
       color: 0x3498db, // Blue
       enabled: true,
-      category: 'Cooking'
+      category: "Cooking",
     },
     "Focus Food": {
       keywords: [
-        "focus", "energy", "bean burger", "Bouillabaisse", "Fried",
-        "Pumpkin Curry", "Dumplings", "akwindu chappa", "stir fry", "Cabbage Rolls",
-        "Masala", "Spicy Rice", "Steak Dinner", "Apple Pie", "Noodle", "Spicy Rice Cakes",
+        "focus",
+        "energy",
+        "bean burger",
+        "Bouillabaisse",
+        "Fried",
+        "Pumpkin Curry",
+        "Dumplings",
+        "akwindu chappa",
+        "stir fry",
+        "Cabbage Rolls",
+        "Masala",
+        "Spicy Rice",
+        "Steak Dinner",
+        "Apple Pie",
+        "Noodle",
+        "Spicy Rice Cakes",
       ],
-      webhookUrl: "https://discord.com/api/webhooks/1394465867219341343/2NuQoxBUhPXfwsKivNsW0mK39dHXNGDuYSY5P2RF80Tsq7CQbQ4O_aSQWI86J191KszS",
+      webhookUrl:
+        "https://discord.com/api/webhooks/1394465867219341343/2NuQoxBUhPXfwsKivNsW0mK39dHXNGDuYSY5P2RF80Tsq7CQbQ4O_aSQWI86J191KszS",
       color: 0x9b59b6, // Purple
       enabled: true,
-      category: 'Cooking'
+      category: "Cooking",
     },
-    "Giveaways": {
+    Giveaways: {
       keywords: ["giveaway", "free", "plush", "new member", "gathering"],
-      webhookUrl: "https://discord.com/api/webhooks/1394466102620323912/Cf6-KbJGO9X6oLxqrxgIi6Uj1VkEsEe8kOpkY0O0XA1vQIEIlZmNZrOv4NjpEKnbdlYi",
+      webhookUrl:
+        "https://discord.com/api/webhooks/1394466102620323912/Cf6-KbJGO9X6oLxqrxgIi6Uj1VkEsEe8kOpkY0O0XA1vQIEIlZmNZrOv4NjpEKnbdlYi",
       color: 0xe74c3c, // Red
       enabled: true,
-      category: 'any'
+      category: "any",
     },
     "Flow Tree": {
       keywords: ["flow tree", "flow", "tree", "grove"],
-      webhookUrl: "https://discord.com/api/webhooks/1394466429897543720/X52FGeiK3TMQxrc_FDzZ1EvAuM2pHX_3facTu2tZ8QUAtqXRgByNB3Wv94H23hT9mPMW",
+      webhookUrl:
+        "https://discord.com/api/webhooks/1394466429897543720/X52FGeiK3TMQxrc_FDzZ1EvAuM2pHX_3facTu2tZ8QUAtqXRgByNB3Wv94H23hT9mPMW",
       color: 0x27ae60, // Green
       enabled: true,
-      category: 'Foraging'
+      category: "Foraging",
     },
-    "Hunting": {
-      keywords: ["hunting", "hunt", "chapaa", "sernuk", "muujin", "ogopo", "ogopu"],
-      webhookUrl: "https://discord.com/api/webhooks/1394466499288371281/GidMTbSgmK2zmuYxYUN1Ih1yMHxU3A1nuPEK9shVhkkMzjhoXLsVVRHiGW0pTeQV57wF",
+    Hunting: {
+      keywords: [
+        "hunting",
+        "hunt",
+        "chapaa",
+        "sernuk",
+        "muujin",
+        "ogopo",
+        "ogopu",
+      ],
+      webhookUrl:
+        "https://discord.com/api/webhooks/1394466499288371281/GidMTbSgmK2zmuYxYUN1Ih1yMHxU3A1nuPEK9shVhkkMzjhoXLsVVRHiGW0pTeQV57wF",
       color: 0x8b4513, // Brown
       enabled: true,
-      category: 'Hunting'
+      category: "Hunting",
     },
     "Bug Catching": {
       keywords: ["bug catching", "bug", "lure"],
-      webhookUrl: "https://discord.com/api/webhooks/1394466586299207821/1W_BBu3KkAx0IT4mC7Kax2WHO-SnOrBEWe6ujWs76U0PSGrxSUFSRGoUdHB0cL_n5_t_",
+      webhookUrl:
+        "https://discord.com/api/webhooks/1394466586299207821/1W_BBu3KkAx0IT4mC7Kax2WHO-SnOrBEWe6ujWs76U0PSGrxSUFSRGoUdHB0cL_n5_t_",
       color: 0xf39c12, // Orange
       enabled: true,
-      category: 'Bug Catching'
+      category: "Bug Catching",
     },
-    "Fishing": {
+    Fishing: {
       keywords: [
-        "fishing", "fish", "rare", "epic", "legendary", "t1", "t2", "t3",
+        "fishing",
+        "fish",
+        "rare",
+        "epic",
+        "legendary",
+        "t1",
+        "t2",
+        "t3",
         ...rareFish,
         ...epicFish,
-        ...legendaryFish
+        ...legendaryFish,
       ],
-      webhookUrl: "https://discord.com/api/webhooks/1394484347003863120/Z9bBrWLdy4yGL-AkqmGgFCk68pEB8YEsjsYXBq7fj3iuox5Gx4mJrhPt1dEMgeocfxeY",
+      webhookUrl:
+        "https://discord.com/api/webhooks/1394484347003863120/Z9bBrWLdy4yGL-AkqmGgFCk68pEB8YEsjsYXBq7fj3iuox5Gx4mJrhPt1dEMgeocfxeY",
       color: 0x27ae60, // Green
       enabled: true,
-      category: 'Fishing'
+      category: "Fishing",
     },
     "Celebration Cakes": {
       keywords: ["celebration cake", "cake", "birthday", "birthday cake"],
-      webhookUrl: "https://discord.com/api/webhooks/1394466004674809966/qpVh_p81Ry1Ob883jOV2-iLY6HxLIsD3KWReI-fc9WO9QV5ZyCY1FnOyVebsvGP2QDl0",
+      webhookUrl:
+        "https://discord.com/api/webhooks/1394466004674809966/qpVh_p81Ry1Ob883jOV2-iLY6HxLIsD3KWReI-fc9WO9QV5ZyCY1FnOyVebsvGP2QDl0",
       color: 0xff6b6b, // Light Red
       enabled: true,
-      category: 'Cooking'
-    }
+      category: "Cooking",
+    },
   };
 
   const DEFAULT_REFRESH = 30;
@@ -120,7 +169,8 @@
         settings = {
           notify: true,
           refresh: DEFAULT_REFRESH,
-          groupSettings: {}
+          refreshPage: false,
+          groupSettings: {},
         };
       }
 
@@ -129,17 +179,22 @@
         settings.groupSettings = {};
       }
 
+      // Ensure refreshPage setting exists (for backward compatibility)
+      if (settings.refreshPage === undefined) {
+        settings.refreshPage = false;
+      }
+
       // Initialize/update group settings with current groups
-      Object.keys(PARTY_GROUPS).forEach(groupName => {
+      Object.keys(PARTY_GROUPS).forEach((groupName) => {
         if (!settings.groupSettings[groupName]) {
           settings.groupSettings[groupName] = {
-            enabled: PARTY_GROUPS[groupName].enabled
+            enabled: PARTY_GROUPS[groupName].enabled,
           };
         }
       });
 
       // Clean up old group settings that no longer exist
-      Object.keys(settings.groupSettings).forEach(groupName => {
+      Object.keys(settings.groupSettings).forEach((groupName) => {
         if (!PARTY_GROUPS[groupName]) {
           delete settings.groupSettings[groupName];
         }
@@ -154,13 +209,14 @@
       settings = {
         notify: true,
         refresh: DEFAULT_REFRESH,
-        groupSettings: {}
+        refreshPage: false,
+        groupSettings: {},
       };
 
       // Initialize group settings with defaults
-      Object.keys(PARTY_GROUPS).forEach(groupName => {
+      Object.keys(PARTY_GROUPS).forEach((groupName) => {
         settings.groupSettings[groupName] = {
-          enabled: PARTY_GROUPS[groupName].enabled
+          enabled: PARTY_GROUPS[groupName].enabled,
         };
       });
     }
@@ -224,7 +280,11 @@
         const text = span.textContent.trim();
 
         // Check if this span contains activity type
-        if (text.match(/^(Bug Catching|Cooking|Gardening|Furniture Making|Fishing|Foraging|Hunting|Mining)$/i)) {
+        if (
+          text.match(
+            /^(Bug Catching|Cooking|Gardening|Furniture Making|Fishing|Foraging|Hunting|Mining)$/i
+          )
+        ) {
           category = text;
           log(`Found category from span: ${category}`);
           break;
@@ -236,7 +296,11 @@
         const activityIcons = linkElement.querySelectorAll("img[alt]");
         for (const icon of activityIcons) {
           const alt = icon.alt;
-          if (alt.match(/^(Bug Catching|Cooking|Gardening|Furniture Making|Fishing|Foraging|Hunting|Mining)$/i)) {
+          if (
+            alt.match(
+              /^(Bug Catching|Cooking|Gardening|Furniture Making|Fishing|Foraging|Hunting|Mining)$/i
+            )
+          ) {
             category = alt;
             log(`Found category from img alt: ${category}`);
             break;
@@ -479,7 +543,9 @@
     const normalizedTitle = normalize(party.title);
     const matchingGroups = [];
 
-    log(`Checking party "${party.title}" (Category: ${party.category}) for matches...`);
+    log(
+      `Checking party "${party.title}" (Category: ${party.category}) for matches...`
+    );
 
     Object.entries(PARTY_GROUPS).forEach(([groupName, groupConfig]) => {
       // Check if group is enabled in settings
@@ -488,21 +554,28 @@
       }
 
       // Check category filter
-      if (groupConfig.category !== 'any' && groupConfig.category !== party.category) {
-        log(`  ${groupName}: Category mismatch (wants ${groupConfig.category}, party is ${party.category})`);
+      if (
+        groupConfig.category !== "any" &&
+        groupConfig.category !== party.category
+      ) {
+        log(
+          `  ${groupName}: Category mismatch (wants ${groupConfig.category}, party is ${party.category})`
+        );
         return;
       }
 
       // Check if any keyword matches
-      const hasMatch = groupConfig.keywords.some(keyword =>
+      const hasMatch = groupConfig.keywords.some((keyword) =>
         normalizedTitle.includes(normalize(keyword))
       );
 
       if (hasMatch) {
-        log(`  ${groupName}: MATCH! (keyword match + category ${groupConfig.category})`);
+        log(
+          `  ${groupName}: MATCH! (keyword match + category ${groupConfig.category})`
+        );
         matchingGroups.push({
           name: groupName,
-          config: groupConfig
+          config: groupConfig,
         });
       } else {
         log(`  ${groupName}: No keyword match`);
@@ -532,7 +605,7 @@
           }
           groupedMatches.get(group.name).push({
             ...match,
-            group: group
+            group: group,
           });
         }
       }
@@ -568,7 +641,10 @@
               },
             ],
             thumbnail: {
-              url: match.dish && match.dish.image ? match.dish.image : paliaIconUrl,
+              url:
+                match.dish && match.dish.image
+                  ? match.dish.image
+                  : paliaIconUrl,
             },
             timestamp: currentTime,
             footer: {
@@ -592,10 +668,16 @@
           });
 
           if (response.ok) {
-            log(`Discord notification sent successfully for ${groupName} party: ${match.id}`);
+            log(
+              `Discord notification sent successfully for ${groupName} party: ${match.id}`
+            );
             notifiedIds.add(match.id);
           } else {
-            log(`Failed to send Discord notification for ${groupName} party ${match.id}:`, response.status, response.statusText);
+            log(
+              `Failed to send Discord notification for ${groupName} party ${match.id}:`,
+              response.status,
+              response.statusText
+            );
           }
 
           // Add a small delay between messages to avoid rate limiting
@@ -629,7 +711,7 @@
     if (newMatches.length === 1) {
       const match = newMatches[0];
       const matchingGroups = findMatchingGroups(match);
-      const groupNames = matchingGroups.map(g => g.name).join(", ");
+      const groupNames = matchingGroups.map((g) => g.name).join(", ");
 
       let dishInfo = "";
       if (match.dish && match.dish.name !== "No dish specified") {
@@ -871,29 +953,35 @@
     document.body.appendChild(toggleBtn);
 
     // Generate group checkboxes
-    const groupCheckboxes = Object.entries(PARTY_GROUPS).map(([groupName, groupConfig]) => {
-      // Ensure groupSettings exists and has this group
-      if (!settings.groupSettings) {
-        settings.groupSettings = {};
-      }
-      if (!settings.groupSettings[groupName]) {
-        settings.groupSettings[groupName] = {
-          enabled: groupConfig.enabled
-        };
-      }
+    const groupCheckboxes = Object.entries(PARTY_GROUPS)
+      .map(([groupName, groupConfig]) => {
+        // Ensure groupSettings exists and has this group
+        if (!settings.groupSettings) {
+          settings.groupSettings = {};
+        }
+        if (!settings.groupSettings[groupName]) {
+          settings.groupSettings[groupName] = {
+            enabled: groupConfig.enabled,
+          };
+        }
 
-      const isEnabled = settings.groupSettings[groupName]?.enabled !== false;
-      const colorHex = `#${groupConfig.color.toString(16).padStart(6, '0')}`;
+        const isEnabled = settings.groupSettings[groupName]?.enabled !== false;
+        const colorHex = `#${groupConfig.color.toString(16).padStart(6, "0")}`;
 
-      return `
+        return `
         <div class="checkbox-group">
-          <input type="checkbox" id="group-${groupName}" ${isEnabled ? "checked" : ""}/>
+          <input type="checkbox" id="group-${groupName}" ${
+          isEnabled ? "checked" : ""
+        }/>
           <label for="group-${groupName}">${groupName}</label>
           <div class="group-indicator" style="background-color: ${colorHex};"></div>
         </div>
-        <div class="group-keywords">Keywords: ${groupConfig.keywords.join(", ")}</div>
+        <div class="group-keywords">Keywords: ${groupConfig.keywords.join(
+          ", "
+        )}</div>
       `;
-    }).join("");
+      })
+      .join("");
 
     const panel = document.createElement("div");
     panel.id = "palia-settings";
@@ -902,7 +990,9 @@
         
         <div class="form-group">
           <div class="checkbox-group">
-            <input type="checkbox" id="palia-toggle" ${settings.notify ? "checked" : ""}/>
+            <input type="checkbox" id="palia-toggle" ${
+              settings.notify ? "checked" : ""
+            }/>
             <label for="palia-toggle">Enable Notifications</label>
           </div>
         </div>
@@ -910,8 +1000,22 @@
         <div class="form-group">
           <label>Auto-refresh interval:</label>
           <div class="input-group">
-            <input type="number" id="palia-refresh" value="${settings.refresh}" min="10" max="300">
+            <input type="number" id="palia-refresh" value="${
+              settings.refresh
+            }" min="10" max="300">
             <span>seconds</span>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="palia-refresh-page" ${
+              settings.refreshPage ? "checked" : ""
+            }/>
+            <label for="palia-refresh-page">Perform page refresh (uncheck to only refetch data)</label>
+          </div>
+          <div style="font-size: 12px; color: #718096; margin-top: 4px;">
+            When unchecked, the extension will refetch party data without refreshing the page, which may work better with dynamic content updates.
           </div>
         </div>
         
@@ -964,19 +1068,21 @@
     document.getElementById("palia-save").onclick = async () => {
       const notifyCheckbox = document.getElementById("palia-toggle");
       const refreshInput = document.getElementById("palia-refresh");
+      const refreshPageCheckbox = document.getElementById("palia-refresh-page");
 
       settings.notify = notifyCheckbox.checked;
       settings.refresh = Math.max(
         10,
         Math.min(300, parseInt(refreshInput.value, 10) || 30)
       );
+      settings.refreshPage = refreshPageCheckbox.checked;
 
       // Update group settings
-      Object.keys(PARTY_GROUPS).forEach(groupName => {
+      Object.keys(PARTY_GROUPS).forEach((groupName) => {
         const checkbox = document.getElementById(`group-${groupName}`);
         if (checkbox) {
           settings.groupSettings[groupName] = {
-            enabled: checkbox.checked
+            enabled: checkbox.checked,
           };
         }
       });
@@ -1014,8 +1120,13 @@
     checkTitles();
 
     setInterval(() => {
-      log(`Refreshing page every ${settings.refresh} seconds...`);
-      location.reload();
+      if (settings.refreshPage) {
+        log(`Refreshing page every ${settings.refresh} seconds...`);
+        location.reload();
+      } else {
+        log(`Refetching party data every ${settings.refresh} seconds...`);
+        checkTitles();
+      }
     }, settings.refresh * 1000);
   }
 
